@@ -121,7 +121,7 @@ project, and whoever hits it will delete the guard rather than the cause.
 
   ```text
   env/dev.json is acme-dev, but the native config is acme-prod.
-  Run `melos run prepare-env-dev`.
+  Run `make env-dev`.
   ```
 
 - **Log it as fatal, with both ids as data** — not a bare "config mismatch".

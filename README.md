@@ -1,6 +1,6 @@
-# system_design
+# flutter-system-design-kit
 
-The shared design system: presentation-only widgets, spacing primitives, and
+Dart package `system_design`. The shared design system: presentation-only widgets, spacing primitives, and
 the theme *contract* they read. Consumed by an app as a path dependency on a
 git submodule.
 
@@ -13,7 +13,7 @@ in a different brand without a line changing here.
 ```yaml
 dependencies:
   system_design:
-    path: packages/system_design
+    path: packages/flutter-system-design-kit
 ```
 
 ```dart
@@ -113,47 +113,16 @@ rows bound to app features).
 That boundary is the whole point. See **[WIDGET_RULES.md](WIDGET_RULES.md)**
 before adding anything.
 
-## The release pipeline is in here too
+## The release pipeline is not in here
 
-`tool/` holds the scripts every app embedding this system runs — `set-up.sh`,
-`prepare-env.sh`, `build-ipa.sh`, `deploy-firebase.sh`, `release.sh` — and
-`tool/fastlane/Fastfile` holds the four iOS lanes: `beta`, `upload`,
-`preflight`, `certificates`. None of them names an app.
-
-An app wires itself in with `ios/fastlane/Fastfile`, and that file is only this:
-
-```ruby
-import "../../packages/system_design/tool/fastlane/Fastfile"
-
-sd_ios_app(
-  team_id: "WNG5UWNJ6H",
-  targets: [
-    { name: "Runner", bundle_id: "app.dd.migraine.tracker",
-      entitlements: "Runner/Runner.entitlements" },
-    { name: "BaroEaseWidgetExtension", bundle_id: "app.dd.migraine.tracker.BaroEaseWidgetExtension",
-      entitlements: "BaroEaseWidget/BaroEaseWidget.entitlements" },
-  ],
-)
-```
-
-| Argument | What it is |
-|---|---|
-| `team_id` | The Apple Developer team. Goes into signing and the export plist. |
-| `targets` | **Ordered.** The first is the app — its bundle id is what every upload, config check and TestFlight query uses. The rest are extensions: they get a profile and an export entry, never an upload of their own. |
-| `entitlements` | A path under `ios/`, optional. Given, the lane checks the installed profile carries every key the file claims *before* the build; omitted, that target is skipped. |
-| `flavors` | Defaults to `%w[dev prod]` — the values `flavor:` accepts, and the aliases it looks up in `.firebaserc`. |
-
-The pipeline adapts to what the app has rather than demanding all of it: no
-`.firebaserc` means no Firebase backend, so `release.sh` skips the deploy and
-the lane skips the flavored-config check — announced by name, never silently.
-
-A lane defined *below* the import wins over the shared one of the same name.
-That is the escape hatch, and it exists so one app's special case never has to
-be pushed up into everyone else's pipeline.
+The scripts and the shared iOS lanes live in
+[script-tools](https://github.com/DAMHONGDUC/script-tools) under `flutter/`,
+a submodule of its own beside this one (`packages/script-tools`). This package
+holds widgets only.
 
 ## Check
 
 ```bash
-cd packages/system_design
+cd packages/flutter-system-design-kit
 flutter analyze     # must pass standalone, without the host app
 ```

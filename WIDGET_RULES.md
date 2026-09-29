@@ -367,7 +367,7 @@ pure dimensions stay parameterless (`SdChartStyleV2.plotHeight`).
 ## 7. Before you commit
 
 ```bash
-cd packages/system_design
+cd packages/flutter-system-design-kit
 flutter analyze     # must pass on its own, without the host app
 ```
 
