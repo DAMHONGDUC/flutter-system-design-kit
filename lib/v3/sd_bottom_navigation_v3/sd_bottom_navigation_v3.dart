@@ -125,9 +125,13 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
   /// scroll before the bar is gone, and stopping there left it stuck half
   /// way. Only the bounce settling back is ignored: that is the list, not the
   /// seller, and reading it as a scroll up brought the bar straight back.
+  ///
+  /// A list that fits on screen moves nothing: its only motion is the rubber
+  /// band, which dragged the bar part way down and left it hanging there.
   void _follow(ScrollMetrics metrics, double delta) {
     final double extent = SdContentPaddingV3.floatingBarInset(context);
     final double before = metrics.pixels - delta;
+    final bool fits = metrics.maxScrollExtent <= metrics.minScrollExtent;
     final bool pastEnd =
         metrics.pixels > metrics.maxScrollExtent ||
         before > metrics.maxScrollExtent;
@@ -135,7 +139,10 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
         metrics.pixels < metrics.minScrollExtent ||
         before < metrics.minScrollExtent;
 
-    if (delta == 0 || (pastEnd && delta < 0) || (pastStart && delta > 0)) {
+    if (fits ||
+        delta == 0 ||
+        (pastEnd && delta < 0) ||
+        (pastStart && delta > 0)) {
       return;
     }
 
