@@ -120,11 +120,24 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
   }
 
   /// Moves the bar by as much as the list moved, in the bar's own height.
+  ///
+  /// Past either end the finger still drives it — a short list runs out of
+  /// scroll before the bar is gone, and stopping there left it stuck half
+  /// way. Only the bounce settling back is ignored: that is the list, not the
+  /// seller, and reading it as a scroll up brought the bar straight back.
   void _follow(ScrollMetrics metrics, double delta) {
     final double extent = SdContentPaddingV3.floatingBarInset(context);
+    final double before = metrics.pixels - delta;
+    final bool pastEnd =
+        metrics.pixels > metrics.maxScrollExtent ||
+        before > metrics.maxScrollExtent;
+    final bool pastStart =
+        metrics.pixels < metrics.minScrollExtent ||
+        before < metrics.minScrollExtent;
 
-    // A bounce past either end is not the seller asking for anything.
-    if (metrics.outOfRange || delta == 0) return;
+    if (delta == 0 || (pastEnd && delta < 0) || (pastStart && delta > 0)) {
+      return;
+    }
 
     _lastDelta = delta;
     _hidden.stop();
