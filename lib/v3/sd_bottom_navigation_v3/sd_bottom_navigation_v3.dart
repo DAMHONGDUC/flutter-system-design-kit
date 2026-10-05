@@ -22,8 +22,9 @@ import '../sd_scaffold_v3/sd_scaffold_v3.dart';
 ///
 /// **The bar follows the finger, then settles.** It moves by exactly as much
 /// as the list did, so it can never run ahead of or lag the content; when the
-/// scroll ends a half-hidden bar finishes the way it was nearer to. A timed
-/// slide fired on each change of direction is what made it bounce.
+/// scroll ends a half-hidden bar finishes in the direction the list last
+/// moved. Finishing to the nearer end left it hidden after a short scroll
+/// up — a seller asking for the tabs back and not getting them.
 ///
 /// It always comes back without a scroll the seller has to invent: on a tab
 /// change, at the top of the list, and the moment the list stops being
@@ -61,6 +62,9 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
   /// How hidden the bar is: 0 on screen, 1 fully below the window. Driven by
   /// the scroll directly and animated only to settle.
   late final AnimationController _hidden = AnimationController(vsync: this);
+
+  /// The sign of the last in-range scroll: negative is up, towards the tabs.
+  double _lastDelta = 0;
 
   @override
   void didUpdateWidget(SdBottomNavigationV3 oldWidget) {
@@ -109,7 +113,7 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
     if (notification is ScrollUpdateNotification) {
       _follow(metrics, notification.scrollDelta ?? 0);
     } else if (notification is ScrollEndNotification) {
-      _settle(metrics.extentBefore <= 0 ? 0 : _hidden.value.roundToDouble());
+      _settle(metrics.extentBefore <= 0 || _lastDelta < 0 ? 0 : 1);
     }
 
     return false;
@@ -122,6 +126,7 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
     // A bounce past either end is not the seller asking for anything.
     if (metrics.outOfRange || delta == 0) return;
 
+    _lastDelta = delta;
     _hidden.stop();
     _hidden.value = (_hidden.value + delta / extent).clamp(0.0, 1.0);
   }
