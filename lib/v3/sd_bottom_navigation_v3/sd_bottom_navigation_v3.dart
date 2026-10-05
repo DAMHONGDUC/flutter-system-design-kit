@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../core/sd_spacing_constant.dart';
+import '../sd_content_padding_v3/sd_content_padding_v3.dart';
 import '../sd_floating_bar_scope_v3/sd_floating_bar_scope_v3.dart';
 import '../sd_glass_nav_bar_v3/sd_glass_nav_bar_v3.dart';
 import '../sd_motion_v3/sd_motion_v3.dart';
@@ -19,6 +19,11 @@ import '../sd_scaffold_v3/sd_scaffold_v3.dart';
 /// down slides the bar away and scrolling up brings it back, on every tab —
 /// no screen opts in or out. The bar is translated, never removed from
 /// layout, so the clearance under every list holds in both states.
+///
+/// **The bar follows the finger, then settles.** It moves by exactly as much
+/// as the list did, so it can never run ahead of or lag the content; when the
+/// scroll ends a half-hidden bar finishes the way it was nearer to. A timed
+/// slide fired on each change of direction is what made it bounce.
 ///
 /// It always comes back without a scroll the seller has to invent: on a tab
 /// change, at the top of the list, and the moment the list stops being
@@ -49,40 +54,46 @@ class SdBottomNavigationV3 extends StatefulWidget {
   State<SdBottomNavigationV3> createState() => _SdBottomNavigationV3State();
 }
 
-class _SdBottomNavigationV3State extends State<SdBottomNavigationV3> {
+class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
+    with SingleTickerProviderStateMixin {
   double _dragDistance = 0;
 
-  /// A notifier rather than `setState`, so a flip rebuilds the bar and never
-  /// the tab body.
-  final ValueNotifier<bool> _barVisible = ValueNotifier<bool>(true);
+  /// How hidden the bar is: 0 on screen, 1 fully below the window. Driven by
+  /// the scroll directly and animated only to settle.
+  late final AnimationController _hidden = AnimationController(vsync: this);
 
   @override
   void didUpdateWidget(SdBottomNavigationV3 oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // A new tab starts with its bar, whatever the last one's list did.
-    if (oldWidget.selectedIndex != widget.selectedIndex) {
-      _barVisible.value = true;
-    }
+    if (oldWidget.selectedIndex != widget.selectedIndex) _settle(0);
   }
 
   @override
   void dispose() {
-    _barVisible.dispose();
+    _hidden.dispose();
     super.dispose();
   }
 
-  void _setBarVisible(bool visible) {
+  /// Animates the bar to fully shown (0) or fully hidden (1).
+  void _settle(double target) {
+    final Duration duration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : SdMotionV3.normal;
     final SchedulerBinding binding = SchedulerBinding.instance;
+
+    if (_hidden.value == target && !_hidden.isAnimating) return;
 
     // A metrics change can report mid-layout, where no listener may rebuild.
     if (binding.schedulerPhase == SchedulerPhase.persistentCallbacks) {
       binding.addPostFrameCallback((_) {
-        if (mounted) _barVisible.value = visible;
+        if (mounted) _settle(target);
       });
-    } else {
-      _barVisible.value = visible;
+      return;
     }
+
+    _hidden.animateTo(target, duration: duration, curve: SdMotionV3.standard);
   }
 
   /// The tab's own list only: a horizontal strip or a nested scrollable is
@@ -90,21 +101,29 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3> {
   static bool _isMainList(ScrollMetrics metrics, int depth) =>
       depth == 0 && metrics.axis == Axis.vertical;
 
-  bool _onUserScroll(UserScrollNotification notification) {
+  bool _onScroll(ScrollNotification notification) {
     final ScrollMetrics metrics = notification.metrics;
-    final bool? visible = switch (notification.direction) {
-      ScrollDirection.reverse => false,
-      ScrollDirection.forward => true,
-      ScrollDirection.idle => metrics.extentBefore <= 0 ? true : null,
-    };
 
-    if (!_isMainList(metrics, notification.depth) || visible == null) {
-      return false;
+    if (!_isMainList(metrics, notification.depth)) return false;
+
+    if (notification is ScrollUpdateNotification) {
+      _follow(metrics, notification.scrollDelta ?? 0);
+    } else if (notification is ScrollEndNotification) {
+      _settle(metrics.extentBefore <= 0 ? 0 : _hidden.value.roundToDouble());
     }
 
-    _setBarVisible(visible);
-
     return false;
+  }
+
+  /// Moves the bar by as much as the list moved, in the bar's own height.
+  void _follow(ScrollMetrics metrics, double delta) {
+    final double extent = SdContentPaddingV3.floatingBarInset(context);
+
+    // A bounce past either end is not the seller asking for anything.
+    if (metrics.outOfRange || delta == 0) return;
+
+    _hidden.stop();
+    _hidden.value = (_hidden.value + delta / extent).clamp(0.0, 1.0);
   }
 
   bool _onMetrics(ScrollMetricsNotification notification) {
@@ -112,9 +131,7 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3> {
 
     if (!_isMainList(metrics, notification.depth)) return false;
 
-    if (metrics.maxScrollExtent <= metrics.minScrollExtent) {
-      _setBarVisible(true);
-    }
+    if (metrics.maxScrollExtent <= metrics.minScrollExtent) _settle(0);
 
     return false;
   }
@@ -142,54 +159,40 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final Duration duration = MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : SdMotionV3.normal;
-
-    return SdScaffoldV3(
-      extendBody: true,
-      body: SdFloatingBarScopeV3(
-        edge: SdFloatingBarEdgeV3.bottom,
-        child: NotificationListener<ScrollMetricsNotification>(
-          onNotification: _onMetrics,
-          child: NotificationListener<UserScrollNotification>(
-            onNotification: _onUserScroll,
-            child: GestureDetector(
-              key: SdBottomNavigationV3.swipeSurfaceKey,
-              behavior: HitTestBehavior.translucent,
-              excludeFromSemantics: true,
-              onHorizontalDragStart: _startSwipe,
-              onHorizontalDragUpdate: _updateSwipe,
-              onHorizontalDragCancel: _cancelSwipe,
-              onHorizontalDragEnd: _finishSwipe,
-              child: widget.body,
-            ),
+  Widget build(BuildContext context) => SdScaffoldV3(
+    extendBody: true,
+    body: SdFloatingBarScopeV3(
+      edge: SdFloatingBarEdgeV3.bottom,
+      child: NotificationListener<ScrollMetricsNotification>(
+        onNotification: _onMetrics,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScroll,
+          child: GestureDetector(
+            key: SdBottomNavigationV3.swipeSurfaceKey,
+            behavior: HitTestBehavior.translucent,
+            excludeFromSemantics: true,
+            onHorizontalDragStart: _startSwipe,
+            onHorizontalDragUpdate: _updateSwipe,
+            onHorizontalDragCancel: _cancelSwipe,
+            onHorizontalDragEnd: _finishSwipe,
+            child: widget.body,
           ),
         ),
       ),
-      bottomNavigationBar: ValueListenableBuilder<bool>(
-        valueListenable: _barVisible,
-        // The fade takes the shadow too, which a slide alone leaves peeking
-        // over the bottom edge.
-        builder: (BuildContext context, bool visible, Widget? bar) =>
-            AnimatedSlide(
-              offset: visible ? Offset.zero : const Offset(0, 1),
-              duration: duration,
-              curve: visible ? SdMotionV3.standard : SdMotionV3.exit,
-              child: AnimatedOpacity(
-                opacity: visible ? 1 : 0,
-                duration: duration,
-                curve: visible ? SdMotionV3.standard : SdMotionV3.exit,
-                child: bar,
-              ),
-            ),
-        child: SdGlassNavBarV3(
-          destinations: widget.destinations,
-          selectedIndex: widget.selectedIndex,
-          onSelected: widget.onSelected,
-        ),
+    ),
+    // A translation only — no fade: an opacity layer over the glass forces
+    // its refraction to re-render offscreen every frame of the slide.
+    bottomNavigationBar: AnimatedBuilder(
+      animation: _hidden,
+      builder: (BuildContext context, Widget? bar) => FractionalTranslation(
+        translation: Offset(0, _hidden.value),
+        child: bar,
       ),
-    );
-  }
+      child: SdGlassNavBarV3(
+        destinations: widget.destinations,
+        selectedIndex: widget.selectedIndex,
+        onSelected: widget.onSelected,
+      ),
+    ),
+  );
 }
