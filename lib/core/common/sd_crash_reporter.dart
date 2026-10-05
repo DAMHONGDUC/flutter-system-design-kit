@@ -32,6 +32,21 @@ abstract class SdCrashReporter {
   /// Record a non-fatal failure.
   void recordError(String reason, {Object? error, StackTrace? stackTrace});
 
+  /// Record a failure nothing caught — it counts against the crash-free rate.
+  ///
+  /// Only `SdBootstrap`'s three error hooks call this, through
+  /// `SdLogger.fatal`. A reporter with no fatal kind of its own falls back
+  /// to [recordError], so the failure is still seen.
+  void recordFatal(String reason, {Object? error, StackTrace? stackTrace}) =>
+      recordError(reason, error: error, stackTrace: stackTrace);
+
+  /// Leave a breadcrumb: a line attached to whatever report comes next.
+  ///
+  /// `SdLogger` passes the flow tag and the message only, **never the data**,
+  /// so what a release build sends here is what a developer wrote, not what
+  /// a user typed.
+  void log(String message) {}
+
   /// Tag every subsequent report with the signed-in user, so an issue can be
   /// traced to the account that hit it.
   ///
@@ -46,6 +61,12 @@ class _NoopSdCrashReporter implements SdCrashReporter {
 
   @override
   void recordError(String reason, {Object? error, StackTrace? stackTrace}) {}
+
+  @override
+  void recordFatal(String reason, {Object? error, StackTrace? stackTrace}) {}
+
+  @override
+  void log(String message) {}
 
   @override
   void setUserId(String? uid) {}

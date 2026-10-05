@@ -10,10 +10,7 @@ import '../common/sd_logger.dart';
 /// The name is what the log line says, so it reads as the sentence a person
 /// would write: `Firebase`, `Google Sign-In`, `Billing`.
 class SdBootstrapStep {
-  const SdBootstrapStep({
-    required this.name,
-    required this.run,
-  });
+  const SdBootstrapStep({required this.name, required this.run});
 
   /// What this step brings up, for the log.
   final String name;
@@ -54,6 +51,9 @@ class SdBootstrapStep {
 ///   where an un-awaited `Future` that failed ends up;
 /// - the guarded zone's own handler — anything the other two miss.
 ///
+/// All three report through `SdLogger.fatal`: nothing caught them, so they are
+/// crashes, and a crash filed as non-fatal never moves the crash-free rate.
+///
 /// **Nothing slow belongs in [SdBootstrapStep].** Everything here runs before
 /// the first frame, where the only thing on screen is the platform launch
 /// image — so work a user could be shown a splash for belongs in a widget
@@ -87,7 +87,7 @@ final class SdBootstrap {
         runApp(builder());
       },
       (Object error, StackTrace stackTrace) {
-        SdLogger.error(
+        SdLogger.fatal(
           logTag,
           'Uncaught zone error',
           error: error,
@@ -134,7 +134,7 @@ final class SdBootstrap {
 
   static void _installErrorHooks(String logTag) {
     FlutterError.onError = (FlutterErrorDetails details) {
-      SdLogger.error(
+      SdLogger.fatal(
         logTag,
         'Flutter framework error',
         error: details.exception,
@@ -143,7 +143,7 @@ final class SdBootstrap {
     };
 
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      SdLogger.error(
+      SdLogger.fatal(
         logTag,
         'Uncaught platform error',
         error: error,
