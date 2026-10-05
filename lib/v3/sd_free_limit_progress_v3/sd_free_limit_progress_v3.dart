@@ -25,7 +25,7 @@ class SdFreeLimitProgressV3 extends StatelessWidget {
 
   /// Thin on purpose: this is a readout, not the progress of something the
   /// seller is waiting on.
-  static double get barHeight => SdSpacingConstant.h4;
+  static double get barHeight => SdSpacingConstant.h6;
 
   /// The headline, already localized.
   final String title;
@@ -50,7 +50,7 @@ class SdFreeLimitProgressV3 extends StatelessWidget {
     // Ink until spent; danger only once it is a wall. The count says it too.
     final Color fill = spent
         ? context.sdTheme3.danger
-        : context.sdTheme3.textSecondary;
+        : context.sdTheme3.textPrimary;
     final Color count = spent
         ? context.sdTheme3.danger
         : context.sdTheme3.textPrimary;

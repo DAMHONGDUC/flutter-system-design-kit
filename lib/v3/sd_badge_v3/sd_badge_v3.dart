@@ -68,7 +68,7 @@ class SdBadgeV3 extends StatelessWidget {
   final SdBadgeSizeV3 size;
 
   /// The dot that carries the hue — what the badge is, not configuration.
-  static double get dotSize => SdSpacingConstant.w6;
+  static double get dotSize => SdSpacingConstant.w8;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +85,7 @@ class SdBadgeV3 extends StatelessWidget {
     final bool isAlert =
         color == null &&
         (tone == SdBadgeToneV3.warning || tone == SdBadgeToneV3.danger);
-    final Color labelColor = isAlert ? tint : context.sdTheme3.textSecondary;
+    final Color labelColor = isAlert ? tint : context.sdTheme3.textPrimary;
     final Widget mark = icon != null
         ? SdIconV3(icon!, size: SdIconV3.smallSize * scale, color: tint)
         : Container(
