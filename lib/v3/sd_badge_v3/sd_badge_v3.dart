@@ -35,8 +35,9 @@ enum SdBadgeSizeV3 {
 /// draws twelve or so states across items, listings, orders and offers, and a
 /// colour-only marker asks the seller to memorise a legend — which is exactly
 /// the failure the "colour is never the only signal" rule exists to stop.
-/// The tone tints the text and the fill; the word is what says which state it
-/// is.
+/// **The hue is a dot, never a wash.** The ground is neutral and the label is
+/// ink; the tone colours the dot (or [icon]) only. `warning` and `danger` tint
+/// the word too, because an alert has to read as one without the dot.
 class SdBadgeV3 extends StatelessWidget {
   const SdBadgeV3({
     required this.label,
@@ -66,9 +67,8 @@ class SdBadgeV3 extends StatelessWidget {
   /// How tightly the badge is padded. See [SdBadgeSizeV3].
   final SdBadgeSizeV3 size;
 
-  /// How much of the tone colour the fill keeps. Low enough that the label
-  /// stays the loudest thing in the badge.
-  static const double fillOpacity = 0.12;
+  /// The dot that carries the hue — what the badge is, not configuration.
+  static double get dotSize => SdSpacingConstant.w6;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +82,17 @@ class SdBadgeV3 extends StatelessWidget {
           SdBadgeToneV3.danger => context.sdTheme3.danger,
           SdBadgeToneV3.info => context.sdTheme3.info,
         };
+    final bool isAlert =
+        color == null &&
+        (tone == SdBadgeToneV3.warning || tone == SdBadgeToneV3.danger);
+    final Color labelColor = isAlert ? tint : context.sdTheme3.textSecondary;
+    final Widget mark = icon != null
+        ? SdIconV3(icon!, size: SdIconV3.smallSize * scale, color: tint)
+        : Container(
+            width: dotSize * scale,
+            height: dotSize * scale,
+            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
+          );
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -89,23 +100,23 @@ class SdBadgeV3 extends StatelessWidget {
         vertical: SdSpacingConstant.h4 * scale,
       ),
       decoration: BoxDecoration(
-        color: tint.withValues(alpha: fillOpacity),
+        color: context.sdTheme3.surfaceSunken,
         borderRadius: SdRadiusV3.chipAll,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          if (icon != null) ...<Widget>[
-            SdIconV3(icon!, size: SdIconV3.smallSize * scale, color: tint),
-            SizedBox(width: SdSpacingConstant.w4 * scale),
-          ],
-          Text(
-            label,
-            style: context.textTheme3.labelSmall!.semiBold3.copyWith(
-              color: tint,
+          mark,
+          SizedBox(width: SdSpacingConstant.w6 * scale),
+          Flexible(
+            child: Text(
+              label,
+              style: context.textTheme3.labelSmall!.semiBold3.copyWith(
+                color: labelColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

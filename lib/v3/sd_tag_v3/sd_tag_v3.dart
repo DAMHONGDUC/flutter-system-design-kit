@@ -19,9 +19,10 @@ import '../sd_text_style_v3/sd_text_style_v3.dart';
 /// a colour and passes it, which is also what lets every value in a set carry
 /// a different one.
 ///
-/// **Colour is never the only signal**: the label is always spelled out, and
-/// the chosen tag is filled *and* draws a filled radio. A viewer who cannot
-/// tell the hues apart still sees which one is picked.
+/// **The hue is in the radio, never the border.** Chosen is told in ink — an
+/// ink border, an ink label, a sunken ground. The radio wears [color] either
+/// way — hollow before the pick, filled after — so every option shows its
+/// hue, and a viewer who cannot tell hues apart still sees which is chosen.
 class SdTagV3 extends StatelessWidget {
   const SdTagV3({
     required this.label,
@@ -35,8 +36,7 @@ class SdTagV3 extends StatelessWidget {
 
   final String label;
 
-  /// What this value looks like when it is chosen — its fill, its border and
-  /// its text.
+  /// This value's hue, worn by its radio, glyph or dot.
   final Color color;
 
   final bool selected;
@@ -47,19 +47,16 @@ class SdTagV3 extends StatelessWidget {
   final IconData? icon;
 
   /// Whether a tag with no explicit [icon] draws its selected/unselected
-  /// radio. Display-only tags turn this off because they report a fact rather
-  /// than offering a choice.
+  /// radio. Display-only tags turn this off and draw a dot in [color].
   final bool showSelectionIndicator;
 
-  /// How much of [color] the chosen tag keeps behind it. Low enough that the
-  /// label stays the loudest thing in it — the same strength `SdBadgeV3`
-  /// fills with, so a chosen tag and the badge for the same value read as one
-  /// colour rather than two versions of it.
-  static const double fillOpacity = 0.12;
+  /// The dot a display-only tag draws — what the tag is, not configuration.
+  static double get dotSize => SdSpacingConstant.w8;
 
   @override
   Widget build(BuildContext context) {
-    final Color foreground = selected ? color : context.sdTheme3.textSecondary;
+    final Color ink = context.sdTheme3.textPrimary;
+    final Color foreground = selected ? ink : context.sdTheme3.textSecondary;
     final IconData? leadingIcon =
         icon ??
         (showSelectionIndicator
@@ -67,6 +64,13 @@ class SdTagV3 extends StatelessWidget {
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_unchecked_rounded
             : null);
+    final Widget mark = leadingIcon != null
+        ? SdIconV3(leadingIcon, size: SdIconV3.smallSize, color: color)
+        : Container(
+            width: dotSize,
+            height: dotSize,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          );
 
     return Material(
       color: Colors.transparent,
@@ -80,24 +84,16 @@ class SdTagV3 extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: selected
-                ? color.withValues(alpha: fillOpacity)
+                ? context.sdTheme3.surfaceSunken
                 : Colors.transparent,
             borderRadius: SdRadiusV3.chipAll,
-            border: Border.all(
-              color: selected ? color : context.sdTheme3.border,
-            ),
+            border: Border.all(color: selected ? ink : context.sdTheme3.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              if (leadingIcon != null) ...<Widget>[
-                SdIconV3(
-                  leadingIcon,
-                  size: SdIconV3.smallSize,
-                  color: foreground,
-                ),
-                SizedBox(width: SdSpacingConstant.w6),
-              ],
+              mark,
+              SizedBox(width: SdSpacingConstant.w6),
               Text(
                 label,
                 style: context.textTheme3.bodySmall!.semiBold3.copyWith(
