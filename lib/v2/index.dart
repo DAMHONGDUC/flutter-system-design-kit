@@ -35,6 +35,7 @@ export 'sd_donut_chart_v2/sd_donut_chart_v2.dart';
 export 'sd_empty_state_v2/sd_empty_state_v2.dart';
 export 'sd_error_view_v2/sd_error_view_v2.dart';
 export 'sd_filter_pill_v2/sd_filter_pill_v2.dart';
+export 'sd_filter_section_v2/sd_filter_section_v2.dart';
 export 'sd_filter_sheet_v2/sd_filter_sheet_v2.dart';
 export 'sd_fitted_text_v2/sd_fitted_text_v2.dart';
 export 'sd_floating_bar_scope_v2/sd_floating_bar_scope_v2.dart';

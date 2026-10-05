@@ -25,6 +25,7 @@ class SdFilterPillV2 extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.active = false,
+    this.icon = Symbols.filter_list_rounded,
     super.key,
   });
 
@@ -42,6 +43,11 @@ class SdFilterPillV2 extends StatelessWidget {
 
   /// True while this pill is actually narrowing something — anything other than its "all".
   final bool active;
+
+  /// The leading glyph. A pill that opens every axis at once takes a different
+  /// one from the per-axis pills beside it, so the two are told apart before
+  /// either is read.
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +76,7 @@ class SdFilterPillV2 extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               SdIconV2(
-                icon: Symbols.filter_list_rounded,
+                icon: icon,
                 size: SdSpacingConstant.r16,
                 color: scheme.primary,
               ),

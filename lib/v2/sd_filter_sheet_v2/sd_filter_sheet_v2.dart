@@ -15,10 +15,9 @@ import '../sd_icon_v2/sd_icon_v2.dart';
 /// what's being filtered.
 ///
 /// Shared by every screen that filters a list along one enum-like axis:
-/// History's period filter, and the medications tab's three independent
-/// filters (date added, reminder, usage) — each opens its own instance of
-/// this sheet rather than one combined multi-axis picker, so every filter
-/// stays a simple, single-tap choice.
+/// History's axes and the medications tab's three (date added, reminder,
+/// usage) — each chip opens its own instance, a single-tap choice. Every axis
+/// at once is a different sheet, built from `SdFilterSectionV2`.
 Future<T?> showSdFilterSheetV2<T>(
   BuildContext context, {
   required String title,
