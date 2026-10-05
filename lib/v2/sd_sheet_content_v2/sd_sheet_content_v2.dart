@@ -41,6 +41,7 @@ class SdSheetContentV2 extends StatelessWidget {
     this.footer,
     this.contentHorizontalPadding,
     this.scrollable = true,
+    this.footerTopPadding,
     super.key,
   });
 
@@ -97,6 +98,10 @@ class SdSheetContentV2 extends StatelessWidget {
   /// indicator, which is not a decision a caller should be able to lose.
   final double? contentHorizontalPadding;
 
+  /// Gap between the scroll area and [footer]. Defaults to none; a footer
+  /// that is a row of buttons rather than a text link needs air above it.
+  final double? footerTopPadding;
+
   @override
   Widget build(BuildContext context) {
     final double maxHeight =
@@ -138,7 +143,7 @@ class SdSheetContentV2 extends StatelessWidget {
             Padding(
               padding: EdgeInsets.fromLTRB(
                 SdContentPaddingV2.horizontal,
-                0,
+                footerTopPadding ?? 0,
                 SdContentPaddingV2.horizontal,
                 confirmLabel == null ? safeBottom : SdSpacingConstant.h8,
               ),
