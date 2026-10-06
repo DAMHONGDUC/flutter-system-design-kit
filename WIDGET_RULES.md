@@ -160,6 +160,15 @@ stamp absent, nothing anywhere .............. first install
   one prefix: a reader seeing `SdLogger` in an app file knows without looking
   that it is shared code, and that is worth more than a name that reads
   slightly more naturally in one app.
+- **A crash is fatal, a caught failure is not.** `SdLogger.fatal` →
+  `SdCrashReporter.recordFatal` is for `SdBootstrap`'s three hooks and
+  nothing else; everything a `catch` reaches is `SdLogger.error`. Filing an
+  uncaught error as non-fatal is how a dashboard shows 100% crash-free while
+  users crash.
+- **Breadcrumbs carry the tag and the message, never the data.**
+  `action`, `info` and `warning` forward `'$tag - $message'` to
+  `SdCrashReporter.log` in every build, so the data argument stays on the
+  device the way the console line does in release.
 - **Additive only.** A second app is already calling these. Adding a method is
   fine; changing a signature is a change to a shipped app, same as `core/`.
 

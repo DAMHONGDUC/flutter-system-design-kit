@@ -12,7 +12,7 @@ import 'sd_crash_reporter.dart';
 ///   ┌────┴────┐
 ///   ▼         ▼
 /// debug    SdCrashReporter
-/// console  (non-fatal)
+/// console  (non-fatal; fatal from [fatal])
 /// ```
 ///
 /// **Debug builds print; release builds report.** The console sink is gated
@@ -20,6 +20,11 @@ import 'sd_crash_reporter.dart';
 /// in profile or release, and nothing a developer typed into a log message
 /// can leak from a shipped binary. [error] additionally hands the failure to
 /// [SdCrashReporter], which is a no-op until the app attaches a real one.
+///
+/// **[action], [info] and [warning] also leave a breadcrumb** with the
+/// reporter, in every build: the tag and the message, never the data. A crash
+/// report then says what the user was doing just before, without a single
+/// value they entered leaving the device.
 ///
 /// **Never log a password, a token, an OAuth secret or a buyer's address.**
 /// Production errors go to a third-party service, and a log line is the
@@ -32,6 +37,7 @@ import 'sd_crash_reporter.dart';
 /// - [info]    — notable state or flow ('workspace switched')
 /// - [warning] — recoverable oddities ('sync retried')
 /// - [error]   — a caught failure, with its error object and stack trace
+/// - [fatal]   — a failure nothing caught; `SdBootstrap`'s hooks only
 /// - [debug]   — fine detail while chasing something down
 ///
 /// **Every call names its flow first, and the tag is required.** A console
@@ -58,11 +64,15 @@ final class SdLogger {
   );
 
   static void action(String tag, String message, [Object? data]) {
+    _breadcrumb(tag, message);
+
     if (!enabled) return;
     _logger.i(_compose('🎯 $tag', message, data));
   }
 
   static void info(String tag, String message, [Object? data]) {
+    _breadcrumb(tag, message);
+
     if (!enabled) return;
     _logger.i(_compose(tag, message, data));
   }
@@ -73,6 +83,8 @@ final class SdLogger {
   }
 
   static void warning(String tag, String message, [Object? data]) {
+    _breadcrumb(tag, message);
+
     if (!enabled) return;
     _logger.w(_compose(tag, message, data));
   }
@@ -112,6 +124,37 @@ final class SdLogger {
       stackTrace: stackTrace,
     );
   }
+
+  /// A failure nothing caught. Prints in debug, and reports a **fatal**
+  /// through [SdCrashReporter] in every build.
+  ///
+  /// Only `SdBootstrap`'s three error hooks call this. A caught failure is
+  /// [error], whatever it is: fatal is what moves the crash-free rate, and a
+  /// failure the app handled is not a crash.
+  static void fatal(
+    String tag,
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+    Object? data,
+  }) {
+    final String composed = _compose(tag, message, data);
+
+    if (enabled) {
+      _logger.f(composed, error: error, stackTrace: stackTrace);
+    }
+
+    SdCrashReporter.instance.recordFatal(
+      composed,
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+
+  /// The trail a crash report carries: the flow and the message, never the
+  /// data — a release build prints nothing, and must not send it either.
+  static void _breadcrumb(String tag, String message) =>
+      SdCrashReporter.instance.log('$tag - $message');
 
   static String _compose(String tag, String message, Object? data) =>
       data == null ? '$tag - $message' : '$tag - $message — $data';

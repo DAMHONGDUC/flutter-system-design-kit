@@ -25,7 +25,7 @@ class SdFreeLimitProgressV3 extends StatelessWidget {
 
   /// Thin on purpose: this is a readout, not the progress of something the
   /// seller is waiting on.
-  static double get barHeight => SdSpacingConstant.h4;
+  static double get barHeight => SdSpacingConstant.h6;
 
   /// The headline, already localized.
   final String title;
@@ -47,12 +47,13 @@ class SdFreeLimitProgressV3 extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool spent = used >= limit;
     final double progress = limit <= 0 ? 1 : (used / limit).clamp(0, 1);
-    // Spent, so the bar stops reading as neutral progress and starts reading
-    // as a wall. The only colour change in the widget, and the count label
-    // says the same thing in words.
-    final Color tint = spent
+    // Ink until spent; danger only once it is a wall. The count says it too.
+    final Color fill = spent
         ? context.sdTheme3.danger
-        : context.colorScheme3.primary;
+        : context.sdTheme3.textPrimary;
+    final Color count = spent
+        ? context.sdTheme3.danger
+        : context.sdTheme3.textPrimary;
 
     return InkWell(
       onTap: onTap,
@@ -75,7 +76,7 @@ class SdFreeLimitProgressV3 extends StatelessWidget {
                 Text(
                   countLabel,
                   style: context.textTheme3.bodySmall!.semiBold3.tabular3
-                      .copyWith(color: tint),
+                      .copyWith(color: count),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -88,7 +89,7 @@ class SdFreeLimitProgressV3 extends StatelessWidget {
                 value: progress,
                 minHeight: barHeight,
                 backgroundColor: context.sdTheme3.surfaceSunken,
-                valueColor: AlwaysStoppedAnimation<Color>(tint),
+                valueColor: AlwaysStoppedAnimation<Color>(fill),
               ),
             ),
           ],
