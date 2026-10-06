@@ -4,6 +4,9 @@ part of 'sd_bottom_navigation_v2.dart';
 /// highlight that *slides* under the selected destination instead of
 /// Material's fade-in indicator.
 ///
+/// A touch pops twice, both through [SdPopScaleV2]: the pill by
+/// [_popPeakScale], and the touched glyph by the icon-sized default.
+///
 /// Private because it is not separately useful: without
 /// [SdFloatingBarScopeV2] above it and `extendBody` around it, the bar
 /// refracts a blank strip and every screen behind it loses its last row. The
@@ -90,10 +93,15 @@ class _GlassNavBar extends StatelessWidget {
                         for (final (int index, SdNavDestinationV2 destination)
                             in destinations.indexed)
                           Expanded(
-                            child: SdNavSegmentV2(
-                              destination: destination,
-                              selected: index == selectedIndex,
-                              onTap: () => onSelected(index),
+                            // The glyph swells out from under the finger, the
+                            // way an app-bar icon does; the pill's own pop
+                            // stays the barely-there one above.
+                            child: SdPopScaleV2(
+                              child: SdNavSegmentV2(
+                                destination: destination,
+                                selected: index == selectedIndex,
+                                onTap: () => onSelected(index),
+                              ),
                             ),
                           ),
                       ],
