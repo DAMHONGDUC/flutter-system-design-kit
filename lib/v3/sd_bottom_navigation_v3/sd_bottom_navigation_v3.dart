@@ -217,6 +217,7 @@ class _SdBottomNavigationV3State extends State<SdBottomNavigationV3>
         destinations: widget.destinations,
         selectedIndex: widget.selectedIndex,
         onSelected: widget.onSelected,
+        movement: _hidden,
       ),
     ),
   );

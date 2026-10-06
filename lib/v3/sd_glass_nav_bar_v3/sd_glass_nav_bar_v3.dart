@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 import '../sd_content_padding_v3/sd_content_padding_v3.dart';
@@ -35,12 +37,22 @@ class SdGlassNavBarV3 extends StatelessWidget {
     required this.destinations,
     required this.selectedIndex,
     required this.onSelected,
+    this.movement,
     super.key,
   });
 
   final List<SdNavDestinationV3> destinations;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
+
+  /// Ticks on every frame the parent moves the bar on screen.
+  ///
+  /// **The glass caches its shape in screen space and notices a move only
+  /// after the frame is drawn**, so a moving bar painted its shader over last
+  /// frame's shape — a white strip along the leading edge, as tall as the
+  /// move. Each tick relays the glass out, which rebuilds the shape in the
+  /// frame that moved it. Null for a bar that never moves.
+  final Listenable? movement;
 
   /// Test seam. The capsule's whole point is where it is and how wide it is
   /// mid-flight, and both are real layout — a test measures its rect rather
@@ -73,28 +85,31 @@ class SdGlassNavBarV3 extends StatelessWidget {
           settings: SdGlassV3.settings(context),
           fake: !SdGlassV3.isSupported,
           glassContainsChild: false,
-          child: SizedBox(
-            height: SdContentPaddingV3.floatingBarHeight,
-            child: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                _SelectedCapsule(
-                  count: destinations.length,
-                  selectedIndex: selectedIndex,
-                ),
-                Row(
-                  children: <Widget>[
-                    for (int i = 0; i < destinations.length; i++)
-                      Expanded(
-                        child: SdNavCellV3(
-                          destination: destinations[i],
-                          selected: i == selectedIndex,
-                          onTap: () => onSelected(i),
+          child: _RelayoutOnTick(
+            listenable: movement,
+            child: SizedBox(
+              height: SdContentPaddingV3.floatingBarHeight,
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  _SelectedCapsule(
+                    count: destinations.length,
+                    selectedIndex: selectedIndex,
+                  ),
+                  Row(
+                    children: <Widget>[
+                      for (int i = 0; i < destinations.length; i++)
+                        Expanded(
+                          child: SdNavCellV3(
+                            destination: destinations[i],
+                            selected: i == selectedIndex,
+                            onTap: () => onSelected(i),
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -144,5 +159,64 @@ class _SelectedCapsule extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Marks its subtree for layout whenever [listenable] ticks.
+///
+/// The dirty mark climbs through the glass above it, and laying the glass out
+/// is the one public way to make it rebuild its cached shape — see
+/// [SdGlassNavBarV3.movement].
+class _RelayoutOnTick extends SingleChildRenderObjectWidget {
+  const _RelayoutOnTick({required this.listenable, required super.child});
+
+  final Listenable? listenable;
+
+  @override
+  _RenderRelayoutOnTick createRenderObject(BuildContext context) =>
+      _RenderRelayoutOnTick(listenable);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderRelayoutOnTick renderObject,
+  ) => renderObject.listenable = listenable;
+}
+
+class _RenderRelayoutOnTick extends RenderProxyBox {
+  _RenderRelayoutOnTick(this._listenable);
+
+  Listenable? _listenable;
+
+  set listenable(Listenable? value) {
+    if (value == _listenable) return;
+    if (attached) _listenable?.removeListener(_onTick);
+    _listenable = value;
+    if (attached) _listenable?.addListener(_onTick);
+  }
+
+  void _onTick() {
+    // A tick raised mid-layout cannot dirty layout; the next frame catches it.
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (attached) markNeedsLayout();
+      });
+      return;
+    }
+
+    markNeedsLayout();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _listenable?.addListener(_onTick);
+  }
+
+  @override
+  void detach() {
+    _listenable?.removeListener(_onTick);
+    super.detach();
   }
 }
