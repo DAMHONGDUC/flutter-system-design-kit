@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core/sd_spacing_constant.dart';
 import '../sd_context_v3/sd_context_v3.dart';
+import '../sd_icon_v3/sd_icon_v3.dart';
 import '../sd_motion_v3/sd_motion_v3.dart';
 import '../sd_radius_v3/sd_radius_v3.dart';
 import '../sd_text_style_v3/sd_text_style_v3.dart';
@@ -22,12 +24,18 @@ import '../sd_text_style_v3/sd_text_style_v3.dart';
 /// is bounded by the row it sits in, and its label may be text a user typed —
 /// a category name, a place. The number is what the chip is scanned for, so it
 /// keeps its width and the words give theirs up.
+///
+/// **A chip that opens something wears a caret** ([opensSheet]): a strip can
+/// mix chips that toggle with chips that ask a question in a sheet, and the
+/// two must not look like the same control.
 class SdFilterChipV3 extends StatelessWidget {
   const SdFilterChipV3({
     required this.label,
     required this.selected,
     required this.onSelected,
     this.count,
+    this.icon,
+    this.opensSheet = false,
     super.key,
   });
 
@@ -38,6 +46,13 @@ class SdFilterChipV3 extends StatelessWidget {
   /// How many rows sit behind this filter. Null means "not counted yet";
   /// zero renders as `0` and is a real answer.
   final int? count;
+
+  /// A glyph ahead of the label — for the one chip on a strip that is not a
+  /// filter value, such as the one opening the whole filter sheet.
+  final IconData? icon;
+
+  /// Whether tapping opens a sheet rather than toggling; draws the caret.
+  final bool opensSheet;
 
   /// The chip's own height, and therefore the whole strip's — a filter strip
   /// fits its chips exactly (owner's rule), so this is the only number in
@@ -84,6 +99,14 @@ class SdFilterChipV3 extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  if (icon != null) ...<Widget>[
+                    SdIconV3(
+                      icon!,
+                      size: SdIconV3.smallSize,
+                      color: foreground,
+                    ),
+                    SizedBox(width: SdSpacingConstant.w6),
+                  ],
                   // - loose and inside a `min` row, so a chip in an unbounded
                   //   strip still sizes to its label
                   // - ellipsized where the width IS bounded: a chip in a wrap
@@ -105,6 +128,14 @@ class SdFilterChipV3 extends StatelessWidget {
                       style: context.textTheme3.labelMedium!.tabular3.copyWith(
                         color: foreground,
                       ),
+                    ),
+                  ],
+                  if (opensSheet) ...<Widget>[
+                    SizedBox(width: SdSpacingConstant.w4),
+                    SdIconV3(
+                      Symbols.keyboard_arrow_down_rounded,
+                      size: SdIconV3.smallSize,
+                      color: foreground,
                     ),
                   ],
                 ],
