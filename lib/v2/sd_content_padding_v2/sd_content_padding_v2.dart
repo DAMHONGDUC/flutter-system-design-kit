@@ -89,10 +89,10 @@ abstract final class SdContentPaddingV2 {
 
   /// Side margin shared by the app's two floating bottom bars — the shell's
   /// nav pill and the log flow's step bar — so both lift off the edges by the
-  /// same amount. Its own field rather than a bare [SdSpacingConstant.w24] at
+  /// same amount. Its own field rather than a bare [SdSpacingConstant.w16] at
   /// each call site: that is exactly how the two drifted apart before this
   /// existed.
-  static double get floatingBarHorizontal => SdSpacingConstant.w24;
+  static double get floatingBarHorizontal => SdSpacingConstant.w16;
 
   /// How far the app's two floating bottom bars — the shell's nav pill and the
   /// log flow's step bar — sit above the bottom edge of the screen. Both read
