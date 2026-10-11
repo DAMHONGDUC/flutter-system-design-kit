@@ -291,7 +291,10 @@ class _PressScaleState extends State<_PressScale> {
   bool _down = false;
 
   void _set(bool down) {
-    if (widget.enabled && down != _down) setState(() => _down = down);
+    // A press can outlive the button: the row it sat on may be rebuilt
+    // without it before the finger lifts.
+    if (!mounted || !widget.enabled || down == _down) return;
+    setState(() => _down = down);
   }
 
   @override
