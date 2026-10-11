@@ -1,4 +1,4 @@
-import 'package:flutter/animation.dart';
+import 'package:flutter/widgets.dart';
 
 /// Every duration and curve v3 animates on. No widget writes a
 /// `Duration(milliseconds: …)` or names a [Curve] inline.
@@ -42,4 +42,10 @@ final class SdMotionV3 {
   /// Something both entering and leaving in one animation (a cross-fade, a
   /// size change).
   static const Curve emphasized = Curves.easeInOutCubic;
+
+  /// [duration], or none at all when the user asked the system for reduced
+  /// motion — every v3 animation reads its timing through this, so turning
+  /// motion off in Settings is the only switch anyone needs.
+  static Duration of(BuildContext context, Duration duration) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
 }
