@@ -39,6 +39,7 @@ class SdSwipeRowV3 extends StatelessWidget {
     required this.rowKey,
     this.startAction,
     this.endAction,
+    this.borderRadius,
     super.key,
   });
 
@@ -53,6 +54,10 @@ class SdSwipeRowV3 extends StatelessWidget {
   /// Revealed by a swipe from the trailing edge.
   final SdSwipeActionV3? endAction;
 
+  /// The row's own corners, so the panel behind a card shows no square
+  /// edge past it.
+  final BorderRadius? borderRadius;
+
   @override
   Widget build(BuildContext context) {
     final SdSwipeActionV3? start = startAction;
@@ -60,29 +65,34 @@ class SdSwipeRowV3 extends StatelessWidget {
 
     if (start == null && end == null) return child;
 
-    return Dismissible(
-      key: rowKey,
-      direction: start != null && end != null
-          ? DismissDirection.horizontal
-          : start != null
-          ? DismissDirection.startToEnd
-          : DismissDirection.endToStart,
-      background: start == null
-          ? const SizedBox.shrink()
-          : _Panel(action: start, alignment: AlignmentDirectional.centerStart),
-      secondaryBackground: end == null
-          ? null
-          : _Panel(action: end, alignment: AlignmentDirectional.centerEnd),
-      confirmDismiss: (DismissDirection direction) async {
-        final SdSwipeActionV3? action = direction == DismissDirection.startToEnd
-            ? start
-            : end;
+    return ClipRRect(
+      borderRadius: borderRadius ?? BorderRadius.zero,
+      child: Dismissible(
+        key: rowKey,
+        direction: start != null && end != null
+            ? DismissDirection.horizontal
+            : start != null
+            ? DismissDirection.startToEnd
+            : DismissDirection.endToStart,
+        background: start == null
+            ? const SizedBox.shrink()
+            : _Panel(
+                action: start,
+                alignment: AlignmentDirectional.centerStart,
+              ),
+        secondaryBackground: end == null
+            ? null
+            : _Panel(action: end, alignment: AlignmentDirectional.centerEnd),
+        confirmDismiss: (DismissDirection direction) async {
+          final SdSwipeActionV3? action =
+              direction == DismissDirection.startToEnd ? start : end;
 
-        action?.onTriggered();
+          action?.onTriggered();
 
-        return false;
-      },
-      child: child,
+          return false;
+        },
+        child: child,
+      ),
     );
   }
 }

@@ -22,6 +22,7 @@ import '../sd_text_style_v3/sd_text_style_v3.dart';
 /// - [action] sits at the end of the heading and does not toggle — an Edit
 ///   button there must not also fold the section it edits.
 /// - Motion is `SdMotionV3`, and none at all under reduced motion.
+/// - **A folded body is not built**, so nothing hidden is laid out or found.
 /// - **It carries no gutter**, like `SdSectionHeaderV3`.
 class SdCollapsibleSectionV3 extends StatefulWidget {
   const SdCollapsibleSectionV3({
@@ -118,7 +119,14 @@ class _SdCollapsibleSectionV3State extends State<SdCollapsibleSectionV3>
       SizeTransition(
         sizeFactor: _size,
         alignment: Alignment.topCenter,
-        child: FadeTransition(opacity: _size, child: widget.child),
+        // Fully folded, the body is not built at all: nothing hidden is laid
+        // out, measured or scrolled to.
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (BuildContext context, Widget? child) =>
+              _controller.value == 0 ? const SizedBox.shrink() : child!,
+          child: FadeTransition(opacity: _size, child: widget.child),
+        ),
       ),
     ],
   );
