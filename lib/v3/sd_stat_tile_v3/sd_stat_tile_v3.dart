@@ -4,6 +4,7 @@ import '../../core/sd_spacing_constant.dart';
 import '../sd_card_v3/sd_card_v3.dart';
 import '../sd_context_v3/sd_context_v3.dart';
 import '../sd_icon_v3/sd_icon_v3.dart';
+import '../sd_motion_v3/sd_motion_v3.dart';
 import '../sd_text_style_v3/sd_text_style_v3.dart';
 
 /// How a [SdStatTileV3]'s value should be read. The app decides which one a
@@ -95,15 +96,21 @@ class SdStatTileV3 extends StatelessWidget {
             ],
           ),
           SizedBox(height: SdSpacingConstant.h8),
-          Text(
-            value ?? emptyPlaceholder,
-            style: context.textTheme3.headlineSmall!.bold3.tabular3.copyWith(
-              // An em dash is not a figure — tinting it profit-green would
-              // say the seller earned something.
-              color: hasValue ? valueColor : context.sdTheme3.textTertiary,
+          // A changed figure cross-fades rather than snapping, so a seller
+          // sees that it moved.
+          AnimatedSwitcher(
+            duration: SdMotionV3.of(context, SdMotionV3.fast),
+            child: Text(
+              value ?? emptyPlaceholder,
+              key: ValueKey<String?>(value),
+              style: context.textTheme3.headlineSmall!.bold3.tabular3.copyWith(
+                // An em dash is not a figure — tinting it profit-green would
+                // say the seller earned something.
+                color: hasValue ? valueColor : context.sdTheme3.textTertiary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
           if (caption != null) ...<Widget>[
             SizedBox(height: SdSpacingConstant.h4),

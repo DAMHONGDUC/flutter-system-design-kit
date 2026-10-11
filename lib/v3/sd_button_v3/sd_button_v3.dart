@@ -111,6 +111,10 @@ class SdButtonV3 extends StatelessWidget {
   /// Breathing room between the glyph and the label, before [size] scales it.
   static double get iconGap => SdSpacingConstant.w8;
 
+  /// How far a button settles under the finger — enough to be felt, never
+  /// enough to look like it moved.
+  static const double pressedScale = 0.98;
+
   bool get _enabled => onPressed != null && !busy;
 
   @override
@@ -157,43 +161,46 @@ class SdButtonV3 extends StatelessWidget {
         duration: SdMotionV3.fast,
         curve: SdMotionV3.standard,
         opacity: _enabled ? 1 : SdButtonStyleV3.disabledOpacity,
-        child: Material(
-          color: style.background,
-          borderRadius: SdRadiusV3.buttonAll,
-          child: InkWell(
-            onTap: _enabled ? onPressed : null,
+        child: _PressScale(
+          enabled: _enabled,
+          child: Material(
+            color: style.background,
             borderRadius: SdRadiusV3.buttonAll,
-            child: Ink(
-              decoration: BoxDecoration(
-                borderRadius: SdRadiusV3.buttonAll,
-                border: style.border == null
-                    ? null
-                    : Border.fromBorderSide(style.border!),
-              ),
-              child: Padding(
-                padding: padding,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    // Invisible rather than removed: the button must not
-                    // change width when a save starts. See the class doc.
-                    Opacity(opacity: busy ? 0 : 1, child: content),
-                    // Positioned so it cannot size the stack: a spinner
-                    // wider than the label's line is what made the button
-                    // grow a point mid-tap once the tablet scale reached it.
-                    if (busy)
-                      Positioned.fill(
-                        child: Center(
-                          child: SizedBox.square(
-                            dimension: SdIconV3.defaultSize * scale,
-                            child: CircularProgressIndicator(
-                              strokeWidth: SdSpacingConstant.w2,
-                              color: style.foreground,
+            child: InkWell(
+              onTap: _enabled ? onPressed : null,
+              borderRadius: SdRadiusV3.buttonAll,
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: SdRadiusV3.buttonAll,
+                  border: style.border == null
+                      ? null
+                      : Border.fromBorderSide(style.border!),
+                ),
+                child: Padding(
+                  padding: padding,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      // Invisible rather than removed: the button must not
+                      // change width when a save starts. See the class doc.
+                      Opacity(opacity: busy ? 0 : 1, child: content),
+                      // Positioned so it cannot size the stack: a spinner
+                      // wider than the label's line is what made the button
+                      // grow a point mid-tap once the tablet scale reached it.
+                      if (busy)
+                        Positioned.fill(
+                          child: Center(
+                            child: SizedBox.square(
+                              dimension: SdIconV3.defaultSize * scale,
+                              child: CircularProgressIndicator(
+                                strokeWidth: SdSpacingConstant.w2,
+                                color: style.foreground,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -265,4 +272,38 @@ class SdButtonStyleV3 {
       ),
     };
   }
+}
+
+/// Settles a button to [SdButtonV3.pressedScale] under the finger and back on
+/// release — the press felt, not just painted (`SdMotionV3.fast`, none under
+/// reduced motion). A listener, so it never competes with the tap itself.
+class _PressScale extends StatefulWidget {
+  const _PressScale({required this.enabled, required this.child});
+
+  final bool enabled;
+  final Widget child;
+
+  @override
+  State<_PressScale> createState() => _PressScaleState();
+}
+
+class _PressScaleState extends State<_PressScale> {
+  bool _down = false;
+
+  void _set(bool down) {
+    if (widget.enabled && down != _down) setState(() => _down = down);
+  }
+
+  @override
+  Widget build(BuildContext context) => Listener(
+    onPointerDown: (PointerDownEvent _) => _set(true),
+    onPointerUp: (PointerUpEvent _) => _set(false),
+    onPointerCancel: (PointerCancelEvent _) => _set(false),
+    child: AnimatedScale(
+      scale: _down ? SdButtonV3.pressedScale : 1,
+      duration: SdMotionV3.of(context, SdMotionV3.fast),
+      curve: SdMotionV3.standard,
+      child: widget.child,
+    ),
+  );
 }
