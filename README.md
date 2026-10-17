@@ -66,8 +66,10 @@ lib/
 the screenutil dimensions any version of the system measures in. It carries no
 look, so it carries no version.
 
-`v2`, `v3`, and `v4` are isolated generations. Finances Calculator consumes
-`v4`; prior generations remain frozen for their existing products.
+`v2`, `v3`, `v4`, and `v5` are isolated generations. Finances Calculator consumes
+`v4`; Tuku Shop consumes `v5`, ported from the `system_design_flutter`
+package and used by no other app. Prior generations remain frozen for their
+existing products.
 
 `v2` is the generation of the system, and owns everything that does have a
 look. A future generation gets a `v3/` folder beside it with its own index,

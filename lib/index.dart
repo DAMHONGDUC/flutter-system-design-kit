@@ -19,6 +19,9 @@
 /// v2 is frozen for v3 work: it is what a shipped app is rendering, and a
 /// change made to suit a different product is a change made to an app nobody
 /// asked to redesign.
+///
+/// v5 is Tuku Shop's alone: the `system_design_flutter` package ported here,
+/// router, bloc observer and media helpers included.
 library;
 
 export 'common.dart';
@@ -31,3 +34,4 @@ export 'utils/text_ext.dart';
 export 'v2/index.dart';
 export 'v3/index.dart';
 export 'v4/index.dart';
+export 'v5/index.dart';
