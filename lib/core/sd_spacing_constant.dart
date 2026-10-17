@@ -27,6 +27,7 @@ final class SdSpacingConstant {
   static double get w48 => 48.w;
   static double get w54 => 54.w;
   static double get w56 => 56.w;
+  static double get w64 => 64.w;
   static double get w160 => 160.w;
   static double get w200 => 200.w;
   static double get w240 => 240.w;
@@ -53,6 +54,7 @@ final class SdSpacingConstant {
   static double get h20 => 20.h;
   static double get h22 => 22.h;
   static double get h24 => 24.h;
+  static double get h28 => 28.h;
   static double get h30 => 30.h;
   static double get h32 => 32.h;
   static double get h34 => 34.h;
@@ -85,8 +87,10 @@ final class SdSpacingConstant {
   static double get r28 => 28.r;
   static double get r32 => 32.r;
   static double get r36 => 36.r;
+  static double get r40 => 40.r;
   static double get r44 => 44.r;
   static double get r48 => 48.r;
+  static double get r56 => 56.r;
   static double get r64 => 64.r;
   static double get r88 => 88.r;
   static double get r999 => 999.r;

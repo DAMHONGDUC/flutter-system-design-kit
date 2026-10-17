@@ -31,3 +31,4 @@ export 'utils/text_ext.dart';
 export 'v2/index.dart';
 export 'v3/index.dart';
 export 'v4/index.dart';
+export 'v5/index.dart';
