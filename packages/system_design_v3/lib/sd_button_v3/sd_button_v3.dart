@@ -15,6 +15,8 @@ import '../sd_text_style_v3/sd_text_style_v3.dart';
 /// - [secondary] — a supporting action, tonal fill.
 /// - [outlined] — an alternative action sitting next to a primary.
 /// - [text] — low-emphasis ("Cancel", "Not now", "Skip").
+/// - [link] — an underlined line of small muted type ("Terms of Use",
+///   "Restore purchases"): no fill, no border, [SdContentPaddingV3.link].
 /// - [destructive] — an irreversible confirm (delete, archive-all); error
 ///   fill so it can never be mistaken for the safe action.
 /// - [vendor] — a third-party sign-in button (Apple, Google). Literal black
@@ -26,6 +28,7 @@ enum SdButtonVariantV3 {
   secondary,
   outlined,
   text,
+  link,
   destructive,
   vendor,
 }
@@ -53,9 +56,9 @@ enum SdButtonSizeV3 {
 /// SdButtonV3(variant: SdButtonVariantV3.primary, label: ..., onPressed: ...)
 /// ```
 ///
-/// Every variant wears the same [SdContentPaddingV3.button] and centres its
-/// content, so a filled and an outlined button standing next to each other are
-/// the same size. Material's own `.icon` constructors are deliberately not
+/// Every variant but [SdButtonVariantV3.link] wears the same
+/// [SdContentPaddingV3.button] and centres its content, so a filled and an
+/// outlined button standing next to each other are the same size. Material's own `.icon` constructors are deliberately not
 /// used: they carry their own padding *per variant*, which is exactly what
 /// makes two buttons in a row sit differently.
 ///
@@ -121,12 +124,18 @@ class SdButtonV3 extends StatelessWidget {
   Widget build(BuildContext context) {
     final SdButtonStyleV3 style = SdButtonStyleV3.of(context, variant);
     final double scale = size.scale;
-    final EdgeInsets padding = SdContentPaddingV3.button * scale;
+    final bool isLink = variant == SdButtonVariantV3.link;
+    final EdgeInsets padding =
+        (isLink ? SdContentPaddingV3.link : SdContentPaddingV3.button) * scale;
     final double glyphSize = SdIconV3.defaultSize * scale;
-    final TextStyle labelStyle = context.textTheme3.labelLarge!.semiBold3
-        .copyWith(
-          color: _enabled ? style.foreground : style.disabledForeground,
-        );
+    final TextStyle baseStyle = isLink
+        ? context.textTheme3.bodySmall!.copyWith(
+            decoration: TextDecoration.underline,
+          )
+        : context.textTheme3.labelLarge!.semiBold3;
+    final TextStyle labelStyle = baseStyle.copyWith(
+      color: _enabled ? style.foreground : style.disabledForeground,
+    );
 
     final Widget content = Row(
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
@@ -258,6 +267,11 @@ class SdButtonStyleV3 {
         background: Colors.transparent,
         foreground: colors.primary,
         disabledForeground: muted,
+      ),
+      SdButtonVariantV3.link => SdButtonStyleV3(
+        background: Colors.transparent,
+        foreground: muted,
+        disabledForeground: context.sdTheme3.textTertiary,
       ),
       SdButtonVariantV3.destructive => SdButtonStyleV3(
         background: colors.error,

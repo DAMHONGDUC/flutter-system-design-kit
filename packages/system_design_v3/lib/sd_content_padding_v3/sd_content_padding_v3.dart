@@ -83,12 +83,19 @@ abstract final class SdContentPaddingV3 {
   /// app can be held against the other.
   static double get bottomGap => SdSpacingConstant.h16;
 
-  /// The one padding every `SdButtonV3` wears, whatever its variant — a
-  /// filled, outlined and text button read the same size next to each other
-  /// because none of them types its own.
+  /// The one padding every `SdButtonV3` wears but a link — a filled,
+  /// outlined and text button read the same size next to each other because
+  /// none of them types its own.
   static EdgeInsets get button => EdgeInsets.symmetric(
     horizontal: SdSpacingConstant.w24,
     vertical: SdSpacingConstant.h12,
+  );
+
+  /// The padding an `SdButtonV3` link wears instead of [button] — type with a
+  /// rule under it, not a control, so it sits tight against its neighbours.
+  static EdgeInsets get link => EdgeInsets.symmetric(
+    horizontal: SdSpacingConstant.w8,
+    vertical: SdSpacingConstant.h10,
   );
 
   /// The inside of a card — `SdCardV3`'s default, and what anything drawing
