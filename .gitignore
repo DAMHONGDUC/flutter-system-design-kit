@@ -16,3 +16,6 @@ pubspec.lock
 
 # macOS
 .DS_Store
+
+# Written by a host app's melos bootstrap, which links the generation packages locally.
+pubspec_overrides.yaml
