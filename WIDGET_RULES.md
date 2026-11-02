@@ -225,6 +225,14 @@ Adding a widget is: one folder, one file, one `export` line in
 folder (`buttons/`, `charts/`) — the flat list with one folder each is what
 keeps the index mechanical.
 
+**Code two generations repeat line for line, with no look, moves to core**
+(owner's rule). It is found by comparing each generation's same-named files;
+one that only shares a name has diverged on purpose and stays put. The core
+class takes the unsuffixed `Sd` name, and each generation keeps its old name as
+a `typedef` in its own folder, so no app changes a line: `SdNavPanelScope`
+moved this way, and `SdNavPanelScopeV2` / `SdNavPanelScopeV3` still name it.
+Anything with a look stays in its generation however alike two of them are.
+
 **`core/` is not a dumping ground.** A file belongs there only if it has no
 look at all and every future generation would use it unchanged — raw
 dimensions qualify, a colour or a text style would not. When in doubt it goes
