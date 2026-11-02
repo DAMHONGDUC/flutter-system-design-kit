@@ -1,0 +1,20 @@
+name: system_design_core
+description: What every generation shares — dimensions, startup, breakpoints and the pure-Dart common layer.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_screenutil: ^5.9.3
+  logger: ^2.5.0
+  # Pure Dart: SdId's random ids. Not a vendor SDK, so core/common may use it.
+  uuid: ^4.5.3
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter

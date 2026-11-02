@@ -1,0 +1,26 @@
+name: system_design_v3
+description: Design system v3 — Reseller Studio's widget generation.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Pinned exactly: every published version is a prerelease, and a caret on a
+  # prerelease would let a future 0.2.x in mid-release. Bump deliberately.
+  liquid_glass_renderer: 0.2.0-dev.4
+  loading_animation_widget: ^1.3.0
+  # The icon font the generation draws, the same family the host app uses.
+  material_symbols_icons: ^4.2960.0
+  # The layer every generation shares; never another generation (WIDGET_RULES.md).
+  system_design_core:
+    path: ../system_design_core
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_screenutil: ^5.9.3
+  flutter_test:
+    sdk: flutter

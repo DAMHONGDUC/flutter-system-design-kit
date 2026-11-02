@@ -1,0 +1,2 @@
+# The kit's one rule set, shared by every package in it.
+include: ../../analysis_options.yaml

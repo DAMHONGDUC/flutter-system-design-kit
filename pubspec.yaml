@@ -1,47 +1,30 @@
 name: system_design
-description: Shared design system — tokens, theme and presentation-only widgets, reusable across apps.
+description: Shared design system — every generation in one import, for apps not yet on a generation package.
 version: 0.1.0
 publish_to: none
 
+# The umbrella. Each generation is its own package under packages/ so an app
+# depends on core plus the one generation it renders, and pays for no other
+# generation's dependencies (WIDGET_RULES.md). This package re-exports them all
+# for apps still importing `package:system_design/index.dart`.
 environment:
   sdk: ^3.12.2
 
 dependencies:
-  auto_size_text: ^3.0.0
-  bloc: ^9.0.0
-  chewie: ^1.13.0
-  color_shade: ^1.0.1
-  currency_formatter: ^2.2.3
-  equatable: ^2.0.7
-  fl_chart: ^1.2.0
   flutter:
     sdk: flutter
-  flutter_screenutil: ^5.9.3
-  flutter_skeleton_ui: ^0.0.6
-  flutter_staggered_grid_view: ^0.7.0
-  flutter_svg: ^2.3.0
-  # A range, not a caret: v5's routes use only GoRoute, CustomTransitionPage and
-  # pageKey, unchanged from 15 to 17, and the apps on this kit sit on both.
-  go_router: ">=15.1.2 <18.0.0"
-  intl: ^0.20.2
-  # Pinned exactly: every published version is a prerelease, and a caret on a
-  # prerelease would let a future 0.2.x in mid-release. Bump deliberately.
-  liquid_glass_renderer: 0.2.0-dev.4
-  loading_animation_widget: ^1.3.0
-  logger: ^2.5.0
-  # The icon font every generation draws. A design system that hardcodes a
-  # close cross and a back arrow has to draw them from the same family the
-  # host app does, or one screen carries two icon families.
-  material_symbols_icons: ^4.2960.0
-  path_provider: ^2.1.5
-  # Pure Dart: SdId's random ids. Not a vendor SDK, so core/common may use it.
-  uuid: ^4.5.3
-  video_player: ^2.10.0
-  video_thumbnail: ^0.5.6
+  system_design_core:
+    path: packages/system_design_core
+  system_design_v2:
+    path: packages/system_design_v2
+  system_design_v3:
+    path: packages/system_design_v3
+  system_design_v4:
+    path: packages/system_design_v4
+  system_design_v5:
+    path: packages/system_design_v5
 
 dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-
-flutter:

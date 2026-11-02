@@ -4,6 +4,11 @@
 /// import 'package:system_design/index.dart';
 /// ```
 ///
+/// **Prefer a generation package.** `package:system_design_v3/v3.dart` (and
+/// v2, v4, v5) carries core and that generation only, with only its own
+/// dependencies; this umbrella drags in every generation's — v5's video
+/// plugins included. It stays for apps that have not moved yet.
+///
 /// `core/` holds what does not belong to a widget generation: raw dimensions
 /// that any version of the system measures in. `v2/` and `v3/` are the widget
 /// generations, and each owns everything about its own look.
@@ -24,14 +29,8 @@
 /// router, bloc observer and media helpers included.
 library;
 
-export 'common.dart';
-export 'core/sd_bootstrap/sd_bootstrap.dart';
-export 'core/sd_breakpoint.dart';
-export 'core/sd_dev_wrapper/sd_dev_wrapper.dart';
-export 'core/sd_screen_scale.dart';
-export 'core/sd_spacing_constant.dart';
-export 'utils/text_ext.dart';
-export 'v2/index.dart';
-export 'v3/index.dart';
-export 'v4/index.dart';
-export 'v5/index.dart';
+export 'package:system_design_core/core.dart';
+export 'package:system_design_v2/v2.dart';
+export 'package:system_design_v3/v3.dart';
+export 'package:system_design_v4/v4.dart';
+export 'package:system_design_v5/v5.dart';

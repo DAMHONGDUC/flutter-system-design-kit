@@ -1,20 +1,7 @@
-/// The shared app infrastructure in this package — **pure Dart, no Flutter**.
+/// The pure-Dart common layer, for apps still on the umbrella package.
 ///
-/// ```dart
-/// import 'package:system_design/common.dart';
-/// ```
-///
-/// A second entrypoint next to `index.dart` on purpose. `index.dart` exports
-/// widgets, so importing it from a feature's `domain/` would drag Flutter
-/// into a layer that is meant to stay pure Dart. This one never will —
-/// nothing exported here may import `package:flutter/*`.
-///
-/// `index.dart` re-exports this file, so a widget that already imports the
-/// package index gets [SdLogger] without a second import.
+/// It lives in `system_design_core`; import
+/// `package:system_design_core/common.dart` in an app on a generation package.
 library;
 
-export 'core/common/sd_crash_reporter.dart';
-export 'core/common/sd_device_wipe.dart';
-export 'core/common/sd_fresh_install.dart';
-export 'core/common/sd_id.dart';
-export 'core/common/sd_logger.dart';
+export 'package:system_design_core/common.dart';

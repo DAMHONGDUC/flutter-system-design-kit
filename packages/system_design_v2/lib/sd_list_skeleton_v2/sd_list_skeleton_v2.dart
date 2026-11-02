@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+
+import 'package:system_design_core/core/sd_spacing_constant.dart';
+import '../sd_content_padding_v2/sd_content_padding_v2.dart';
+import '../sd_skeleton_v2/sd_skeleton_v2.dart';
+
+/// The shape of a list that has not arrived: [rows] placeholder cards at the
+/// gap every list in this generation puts between its items.
+///
+/// **A fixed count, not "as many as fit".** The point is to say "rows are
+/// coming and they are about this big"; measuring the viewport to fill it
+/// exactly would be a lot of machinery for a placeholder nobody reads.
+///
+/// **`SdContentPaddingV2.listItemGap`, like the real list**, so the rows do
+/// not shuffle when the data replaces them. The corner is `SdSkeletonV2`'s
+/// own 8 and not the card radius the real rows wear — every skeleton in the
+/// app is the same rectangle, see [SdSkeletonV2].
+class SdListSkeletonV2 extends StatelessWidget {
+  const SdListSkeletonV2({this.rows = defaultRows, this.rowHeight, super.key});
+
+  /// Enough to read as a list on the shortest screen this generation ships
+  /// on, without filling a tall one edge to edge.
+  static const int defaultRows = 5;
+
+  /// Roughly a two-line list tile — what a record row usually comes out at.
+  static double get defaultRowHeight => SdSpacingConstant.h64;
+
+  final int rows;
+  final double? rowHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        for (int i = 0; i < rows; i++) ...<Widget>[
+          if (i > 0) SizedBox(height: SdContentPaddingV2.listItemGap),
+          SdSkeletonV2(height: rowHeight ?? defaultRowHeight),
+        ],
+      ],
+    );
+  }
+}

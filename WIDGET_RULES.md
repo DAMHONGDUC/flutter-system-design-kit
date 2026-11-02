@@ -45,7 +45,7 @@ app migrates.
 
 `v2/` is what **BaroEase** renders. `v3/` is what **Reseller Studio** renders. Both
 are frozen for their products. `v4/` is what **Finances Calculator** renders.
-All three are exported from `lib/index.dart` and live — this is the situation
+**Each generation is its own package** (owner's rule) — `packages/system_design_v2` … `_v5`, each depending on `system_design_core` and on its own third-party packages only — so an app on one generation never resolves another's dependencies; v5's video plugins once pulled CocoaPods into an app that renders v3. The umbrella `system_design` re-exports them all from `lib/index.dart`, and they all live — this is the situation
 the paragraph above describes, not a migration in progress.
 
 **`v3` is not a port of `v2`.** It repeats several widget names because both
@@ -148,7 +148,7 @@ stamp absent, nothing anywhere .............. first install
   written and the next launch tries again.
 
 - **Pure Dart, no Flutter, ever.** It is exported from `common.dart`, a second
-  entrypoint next to `index.dart`, precisely so a feature's `domain/` can log
+  entrypoint next to `core.dart`, precisely so a feature's `domain/` can log
   without importing a widget library. A `package:flutter/*` import in here
   breaks that for every app at once.
 - **No vendor SDK, ever.** `SdCrashReporter` is an interface and a no-op; the
@@ -199,25 +199,29 @@ live here and the SDKs arrive as `SdBootstrapStep`s.
 **One folder per widget, and the folder is named after the file:**
 
 ```
-lib/
-  index.dart                  # widgets + tokens; re-exports common.dart
-  common.dart                 # pure-Dart entry point, safe from domain/
-  core/
-    sd_spacing_constant.dart  # no look, no generation, no suffix
-    common/
-      sd_logger.dart          # app infrastructure, not rendering
-      sd_crash_reporter.dart  # the contract only — never a vendor SDK
-      sd_reinstall_guard.dart      # reinstall = first install, over two app-supplied stores
-      sd_fresh_install.dart        # the wipe a flavour change runs, over an app-supplied store
-  v2/
-    index.dart                # exports every folder below
-    sd_banner_v2/
-      sd_banner_v2.dart         # the widget
-      sd_banner_v2_leading.dart # part files, if it needs them
+packages/
+  system_design_core/lib/
+    core.dart                 # core + common + utils; every generation re-exports it
+    common.dart               # pure-Dart entry point, safe from domain/
+    core/
+      sd_spacing_constant.dart  # no look, no generation, no suffix
+      common/
+        sd_logger.dart          # app infrastructure, not rendering
+        sd_crash_reporter.dart  # the contract only — never a vendor SDK
+  system_design_v2/
+    pubspec.yaml              # system_design_core + v2's own packages, nothing else
+    lib/
+      v2.dart                 # exports every folder below, and core.dart
+      sd_banner_v2/
+        sd_banner_v2.dart         # the widget
+        sd_banner_v2_leading.dart # part files, if it needs them
+    test/
+lib/index.dart                # the umbrella: every generation, for apps not yet moved
 ```
 
 Adding a widget is: one folder, one file, one `export` line in
-`v2/index.dart`. Nothing else in the package changes. Never add a grouping
+`v2.dart`. A new third-party package goes in that generation's own
+`pubspec.yaml`, never in core's or the umbrella's unless every generation needs it. Nothing else in the package changes. Never add a grouping
 folder (`buttons/`, `charts/`) — the flat list with one folder each is what
 keeps the index mechanical.
 
@@ -227,11 +231,15 @@ dimensions qualify, a colour or a text style would not. When in doubt it goes
 in `v2/`; moving something down into `core/` later is cheap, and pulling it
 back out after two generations depend on it is not.
 
-Consumers import exactly one thing:
+An app imports its generation's entry point, and `common.dart` from a pure-Dart layer:
 
 ```dart
-import 'package:system_design/index.dart';
+import 'package:system_design_v3/v3.dart';
+import 'package:system_design_core/common.dart';
 ```
+
+A generation package never depends on another generation package — the
+`pubspec.yaml` is where that rule is enforced, not only the imports.
 
 ## 4. Tokens — where every value comes from
 

@@ -10,17 +10,26 @@ in a different brand without a line changing here.
 
 ## Use it
 
+**Depend on core and the one generation the app renders** — each generation
+is its own package, so an app pays for its generation's dependencies and no
+other's (v5's video plugins stay out of an app on v3):
+
 ```yaml
 dependencies:
-  system_design:
-    path: packages/flutter-system-design-kit
+  system_design_core:
+    path: packages/flutter-system-design-kit/packages/system_design_core
+  system_design_v3:
+    path: packages/flutter-system-design-kit/packages/system_design_v3
 ```
 
 ```dart
-import 'package:system_design/index.dart';
+import 'package:system_design_v3/v3.dart';      // widgets, tokens and core
+import 'package:system_design_core/common.dart'; // pure Dart, from domain/
 ```
 
-One import, and that is the only supported entry point.
+`system_design` (the kit root) is the umbrella: it re-exports every
+generation through `package:system_design/index.dart`, for apps that have not
+moved yet, and drags in every generation's dependencies with it.
 
 Then register the theme contract once, in the app's own `ThemeData`:
 
@@ -49,17 +58,24 @@ loudly, rather than rendering the wrong thing.
 ## Layout
 
 ```
+pubspec.yaml                    # system_design — the umbrella, every generation re-exported
 lib/
-  index.dart                  # THE entry point — the only import a consumer needs
-  core/
-    sd_spacing_constant.dart  # raw dimensions, shared by every generation
-  v2/
-    index.dart                # every widget below, re-exported by lib/index.dart
-    sd_banner_v2/
-      sd_banner_v2.dart
-    sd_button_v2/
-      sd_button_v2.dart
-    …                         # one folder per widget, ~40 of them
+  index.dart                    # umbrella entry point, for apps not yet on a generation package
+  common.dart                   # umbrella re-export of system_design_core/common.dart
+packages/
+  system_design_core/           # what every generation shares
+    lib/
+      core.dart                 # core + common + utils, re-exported by every generation
+      common.dart               # pure-Dart entry point, safe from domain/
+      core/                     # dimensions, startup, breakpoints, common/ (logger, ids, crash reporter)
+      utils/
+  system_design_v3/             # one package per generation: v2, v3, v4, v5
+    lib/
+      v3.dart                   # the entry point an app on v3 imports
+      sd_button_v3/
+        sd_button_v3.dart
+      …                         # one folder per widget
+    test/
 ```
 
 `core/` is what does not belong to a widget generation: `SdSpacingConstant`,
@@ -71,10 +87,10 @@ look, so it carries no version.
 package and used by no other app. Prior generations remain frozen for their
 existing products.
 
-`v2` is the generation of the system, and owns everything that does have a
-look. A future generation gets a `v3/` folder beside it with its own index,
-exported from `lib/index.dart` too, so an app can migrate widget by widget
-instead of all at once.
+Each generation owns everything that does have a look. A future generation
+gets its own package under `packages/`, depending on `system_design_core` and
+nothing else of the kit, and is re-exported from the umbrella `lib/index.dart`
+too, so an app can migrate widget by widget instead of all at once.
 
 ## What is in v2
 
